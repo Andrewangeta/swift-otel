@@ -144,7 +144,7 @@ extension [Opentelemetry_Proto_Common_V1_KeyValue] {
         self = metadata.map { key, value in
             return .with { attribute in
                 attribute.key = key
-                attribute.value = .init(value)
+                attribute.value.stringValue = value.description
             }
         }
     }

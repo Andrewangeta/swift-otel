@@ -90,6 +90,7 @@ public final class OTLPGRPCLogEntryExporter: OTelLogRecordExporter {
                         Opentelemetry_Proto_Logs_V1_ScopeLogs.with { scopeLog in
                             scopeLog.logRecords = batch.map { log in
                                 Opentelemetry_Proto_Logs_V1_LogRecord.with { logRecord in
+                                    logRecord.attributes = .init(log.metadata)
                                     logRecord.timeUnixNano = log.timeNanosecondsSinceEpoch
                                     logRecord.observedTimeUnixNano = log.timeNanosecondsSinceEpoch
                                     logRecord.severityNumber = switch log.level {

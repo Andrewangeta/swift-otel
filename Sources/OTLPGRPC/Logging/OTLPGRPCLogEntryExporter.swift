@@ -86,14 +86,7 @@ public final class OTLPGRPCLogEntryExporter: OTelLogRecordExporter {
         let request = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest.with { request in
             request.resourceLogs = [
                 Opentelemetry_Proto_Logs_V1_ResourceLogs.with { resourceLog in
-                    resourceLog.resource.attributes = resource.loggerMetadata.map { key, value in
-                        return .with { attribute in
-                            attribute.value = .with {
-                                $0.stringValue = value.description
-                            }
-                            attribute.key = key
-                        }
-                    }
+                    resourceLog.resource.attributes = .init(resource.loggerMetadata)
                     resourceLog.scopeLogs = [
                         Opentelemetry_Proto_Logs_V1_ScopeLogs.with { scopeLog in
                             scopeLog.logRecords = batch.map { log in
@@ -150,10 +143,8 @@ extension [Opentelemetry_Proto_Common_V1_KeyValue] {
     package init(_ metadata: Logger.Metadata) {
         self = metadata.map { key, value in
             return .with { attribute in
-                attribute.value = .with {
-                    $0.stringValue = value.description
-                }
                 attribute.key = key
+                attribute.value = .init(value)
             }
         }
     }

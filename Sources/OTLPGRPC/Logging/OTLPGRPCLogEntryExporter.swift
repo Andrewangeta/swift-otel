@@ -81,16 +81,16 @@ public final class OTLPGRPCLogEntryExporter: OTelLogRecordExporter {
             throw OTelLogRecordExporterAlreadyShutDownError()
         }
 
-        guard !batch.isEmpty else { return }
+        guard let resource = batch.first?.resource else { return }
 
         let request = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest.with { request in
             request.resourceLogs = [
                 Opentelemetry_Proto_Logs_V1_ResourceLogs.with { resourceLog in
+                    resourceLog.resource.attributes = .init(resource.loggerMetadata)
                     resourceLog.scopeLogs = [
                         Opentelemetry_Proto_Logs_V1_ScopeLogs.with { scopeLog in
                             scopeLog.logRecords = batch.map { log in
                                 Opentelemetry_Proto_Logs_V1_LogRecord.with { logRecord in
-                                    logRecord.attributes = .init(log.metadata)
                                     logRecord.timeUnixNano = log.timeNanosecondsSinceEpoch
                                     logRecord.observedTimeUnixNano = log.timeNanosecondsSinceEpoch
                                     logRecord.severityNumber = switch log.level {

@@ -69,25 +69,22 @@ public struct OTelLogHandler: Sendable, LogHandler {
         function: String,
         line: UInt
     ) {
-        let resourceMetadata = self.resource.loggerMetadata
         let codeMetadata: Logger.Metadata = [
             "code.filepath": "\(file)",
             "code.function": "\(function)",
             "code.lineno": "\(line)",
         ]
-
+        
         let effectiveMetadata: Logger.Metadata
         if let metadata {
-                effectiveMetadata = resourceMetadata
-                    .merging(codeMetadata, uniquingKeysWith: { $1 })
-                    .merging(self.metadata, uniquingKeysWith: { $1 })
-                    .merging(metadata, uniquingKeysWith: { $1 })
-            } else {
-                effectiveMetadata = resourceMetadata
-                    .merging(codeMetadata, uniquingKeysWith: { $1 })
-                    .merging(self.metadata, uniquingKeysWith: { $1 })
-            }
-
+            effectiveMetadata = codeMetadata
+                .merging(self.metadata, uniquingKeysWith: { $1 })
+                .merging(metadata, uniquingKeysWith: { $1 })
+        } else if !self.metadata.isEmpty {
+            effectiveMetadata = codeMetadata.merging(self.metadata, uniquingKeysWith: { $1 })
+        } else {
+            effectiveMetadata = codeMetadata
+        }
 
         var record = OTelLogRecord(
             body: message,
@@ -103,7 +100,7 @@ public struct OTelLogHandler: Sendable, LogHandler {
 }
 
 @_spi(Logging)
-extension OTelResource {
+public extension OTelResource {
     /// Extracts the resource's attributes as Logger.Metadata.
     ///
     /// This extension converts each attribute value to its string representation.

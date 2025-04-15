@@ -107,7 +107,9 @@ public extension OTelResource {
     var loggerMetadata: Logger.Metadata {
         var metadata: Logger.Metadata = [:]
         attributes.forEach { key, value in
-            metadata[key] = "\(value)"
+            if case let .string(stringValue) = value {
+                metadata[key] = "\(stringValue)"
+            }
         }
         return metadata
     }

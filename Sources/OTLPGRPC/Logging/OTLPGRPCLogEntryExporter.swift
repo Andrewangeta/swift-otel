@@ -21,14 +21,14 @@ import NIOSSL
 
 /// Exports logs to an OTel collector using OTLP/gRPC.
 @_spi(Logging)
-public final class OTLPGRPCLogEntryExporter: OTelLogEntryExporter {
-    private let configuration: OTLPGRPCLogEntryExporterConfiguration
+public final class OTLPGRPCLogEntryExporter: OTelLogRecordExporter {
+    private let configuration: OTLPGRPCLogRecordExporterConfiguration
     private let connection: ClientConnection
     private let client: Opentelemetry_Proto_Collector_Logs_V1_LogsServiceAsyncClient
     private let logger = Logger(label: String(describing: OTLPGRPCLogEntryExporter.self))
 
     public init(
-        configuration: OTLPGRPCLogEntryExporterConfiguration,
+        configuration: OTLPGRPCLogRecordExporterConfiguration,
         group: EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
         requestLogger: Logger = ._otelDisabled,
         backgroundActivityLogger: Logger = ._otelDisabled
@@ -76,9 +76,9 @@ public final class OTLPGRPCLogEntryExporter: OTelLogEntryExporter {
         )
     }
 
-    public func export(_ batch: some Collection<OTelLogEntry> & Sendable) async throws {
+    public func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         if case .shutdown = connection.connectivity.state {
-            throw OTelLogEntryExporterAlreadyShutDownError()
+            throw OTelLogRecordExporterAlreadyShutDownError()
         }
 
         guard !batch.isEmpty else { return }
@@ -110,11 +110,10 @@ public final class OTLPGRPCLogEntryExporter: OTelLogEntryExporter {
                                     case .error: "ERROR"
                                     case .critical: "CRITICAL"
                                     }
-                                    if let metadata = log.metadata {
-                                        logRecord.attributes = .init(metadata)
-                                    }
+                                    
+                                    logRecord.attributes = .init(log.metadata)
                                     logRecord.body = .with { body in
-                                        body.stringValue = log.body
+                                        body.stringValue = "\(log.body)"
                                     }
                                 }
                             }

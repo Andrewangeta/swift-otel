@@ -110,7 +110,7 @@ extension OTelResource {
     var loggerMetadata: Logger.Metadata {
         var metadata: Logger.Metadata = [:]
         attributes.forEach { key, value in
-            metadata[key] = .string("\(value)")
+            metadata[key] = "\(value)"
         }
         return metadata
     }
